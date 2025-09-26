@@ -1,0 +1,126 @@
+version: '3.8'
+
+services:
+  # Basel Capital Engine API
+  basel-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: basel-api
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app/src
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    command: ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Streamlit Dashboard
+  basel-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: basel-dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      - PYTHONPATH=/app/src
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    command: ["streamlit", "run", "app/dashboard.py", "--server.address", "0.0.0.0", "--server.port", "8501"]
+    restart: unless-stopped
+    depends_on:
+      - basel-api
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Jupyter Lab (for development)
+  basel-jupyter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: basel-jupyter
+    ports:
+      - "8888:8888"
+    environment:
+      - PYTHONPATH=/app/src
+      - JUPYTER_ENABLE_LAB=yes
+    volumes:
+      - ./notebooks:/app/notebooks
+      - ./data:/app/data
+      - ./src:/app/src
+    command: ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root", "--NotebookApp.token=''", "--NotebookApp.password=''"]
+    restart: unless-stopped
+    profiles:
+      - dev
+
+  # PostgreSQL (optional - for storing results)
+  postgres:
+    image: postgres:15-alpine
+    container_name: basel-postgres
+    environment:
+      POSTGRES_DB: basel_capital
+      POSTGRES_USER: basel_user
+      POSTGRES_PASSWORD: basel_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    profiles:
+      - db
+
+  # Redis (optional - for caching)
+  redis:
+    image: redis:7-alpine
+    container_name: basel-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    profiles:
+      - cache
+
+  # Nginx (reverse proxy)
+  nginx:
+    image: nginx:alpine
+    container_name: basel-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - basel-api
+      - basel-dashboard
+    restart: unless-stopped
+    profiles:
+      - prod
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    name: basel-network

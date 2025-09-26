@@ -1,0 +1,109 @@
+repos:
+  # Python formatting
+  - repo: https://github.com/psf/black
+    rev: 23.9.1
+    hooks:
+      - id: black
+        language_version: python3
+        args: [--line-length=88]
+
+  # Python linting
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.1.0
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+
+  # Import sorting
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        args: [--profile=black, --line-length=88]
+
+  # Type checking
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.6.1
+    hooks:
+      - id: mypy
+        additional_dependencies: [types-PyYAML, types-requests]
+        args: [--ignore-missing-imports]
+
+  # General hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      # General
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: check-json
+      - id: check-toml
+      - id: check-xml
+      - id: check-added-large-files
+        args: [--maxkb=10240]  # 10MB
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: debug-statements
+      - id: fix-byte-order-marker
+      
+      # Python specific
+      - id: check-ast
+      - id: check-builtin-literals
+      - id: check-docstring-first
+      - id: name-tests-test
+        args: [--pytest-test-first]
+      - id: requirements-txt-fixer
+
+  # Security scanning
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.5
+    hooks:
+      - id: bandit
+        args: [-r, src/, -f, json, -o, bandit-report.json]
+        pass_filenames: false
+
+  # Documentation
+  - repo: https://github.com/pycqa/pydocstyle
+    rev: 6.3.0
+    hooks:
+      - id: pydocstyle
+        args: [--convention=google]
+        additional_dependencies: [toml]
+
+  # Jupyter notebooks
+  - repo: https://github.com/nbQA-dev/nbQA
+    rev: 1.7.0
+    hooks:
+      - id: nbqa-black
+        additional_dependencies: [black==23.9.1]
+      - id: nbqa-ruff
+        additional_dependencies: [ruff==0.1.0]
+
+  # YAML formatting
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.0.3
+    hooks:
+      - id: prettier
+        types: [yaml]
+
+  # Docker
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint-docker
+        args: [--ignore, DL3008, --ignore, DL3009]
+
+# Configuration
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false

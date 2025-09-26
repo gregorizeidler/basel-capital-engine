@@ -1,0 +1,202 @@
+# Basel Capital Engine Configuration
+# This file contains default parameters for regulatory capital calculations
+
+# Risk Weights for Credit Risk (Standardized Approach)
+risk_weights:
+  credit:
+    # Sovereign exposures by rating
+    sovereign_aaa_aa: 0.0
+    sovereign_a: 0.2
+    sovereign_bbb_bb: 0.5
+    sovereign_b_below: 1.0
+    sovereign_unrated: 1.0
+    
+    # Bank exposures by rating
+    bank_aaa_aa: 0.2
+    bank_a: 0.5
+    bank_bbb_bb: 1.0
+    bank_b_below: 1.5
+    bank_unrated: 1.0
+    
+    # Corporate exposures by rating  
+    corporate_aaa_aa: 0.2
+    corporate_a: 0.5
+    corporate_bbb_bb: 1.0
+    corporate_b_below: 1.5
+    corporate_unrated: 1.0
+    
+    # Retail exposures
+    retail_mortgage: 0.35
+    retail_qualifying_revolving: 0.75
+    retail_other: 0.75
+    
+    # Specialized lending
+    real_estate_commercial: 1.0
+    real_estate_residential: 0.35
+    
+    # High volatility commercial real estate
+    hvcre: 1.5
+    
+    # Past due exposures
+    past_due_secured: 1.0
+    past_due_unsecured: 1.5
+    
+    # Other assets
+    cash: 0.0
+    gold: 0.0
+    other_assets: 1.25
+
+  # Market Risk - FRTB Sensitivities Risk Weights
+  market:
+    # Interest rate risk weights by tenor (delta sensitivities)
+    ir_risk_weights:
+      "2w": 1.7
+      "1m": 1.7
+      "3m": 1.3
+      "6m": 1.1
+      "1y": 1.0
+      "2y": 1.0
+      "3y": 1.0
+      "5y": 1.0
+      "10y": 1.0
+      "15y": 1.0
+      "20y": 1.0
+      "30y": 1.0
+    
+    # FX risk weights
+    fx_risk_weight: 0.15
+    
+    # Equity risk weights
+    equity_large_cap: 0.25
+    equity_small_cap: 0.35
+    equity_emerging: 0.35
+    
+    # Credit spread risk weights
+    credit_spread_ig: 0.005
+    credit_spread_hy: 0.02
+    credit_spread_non_sec: 0.015
+
+# Regulatory Buffers (as decimals)
+buffers:
+  # Capital Conservation Buffer
+  conservation: 0.025  # 2.5%
+  
+  # Countercyclical Buffer (country-specific, can be 0-2.5%)
+  countercyclical: 0.0  # 0% default
+  
+  # Systemically Important Financial Institution buffer
+  sifi:
+    g_sib_bucket_1: 0.01   # 1.0%
+    g_sib_bucket_2: 0.015  # 1.5%
+    g_sib_bucket_3: 0.02   # 2.0%
+    g_sib_bucket_4: 0.025  # 2.5%
+    g_sib_bucket_5: 0.035  # 3.5%
+    d_sib: 0.01           # 1.0% domestic
+
+# Minimum Capital Requirements
+minimum_ratios:
+  cet1_minimum: 0.045      # 4.5%
+  tier1_minimum: 0.06      # 6.0%
+  total_capital_minimum: 0.08  # 8.0%
+  leverage_minimum: 0.03   # 3.0%
+
+# Credit Risk Mitigation
+crm:
+  # Haircuts for financial collateral (supervisory approach)
+  haircuts:
+    sovereign_aaa: 0.005
+    sovereign_aa: 0.01
+    sovereign_a: 0.015
+    sovereign_bbb: 0.02
+    corporate_ig: 0.02
+    corporate_bb: 0.05
+    equity_main_index: 0.15
+    equity_other: 0.25
+    gold: 0.15
+    
+  # Currency mismatch haircut
+  fx_haircut: 0.08
+
+# Operational Risk (SMA parameters)
+operational_risk:
+  # Business Indicator Component thresholds (in millions)
+  bic_thresholds:
+    bucket_1: 1000    # €1bn
+    bucket_2: 30000   # €30bn
+  
+  # Marginal coefficients
+  marginal_coefficients:
+    bucket_1: 0.12
+    bucket_2: 0.15  
+    bucket_3: 0.18
+  
+  # Internal Loss Multiplier parameters
+  ilm:
+    loss_component_threshold: 20  # €20m
+    alpha: 0.2
+
+# Stress Testing Scenarios
+stress_scenarios:
+  # Base case (no stress)
+  base_case:
+    name: "Base Case"
+    description: "Current market conditions"
+    shocks: {}
+  
+  # Adverse scenario
+  adverse:
+    name: "Adverse Scenario"
+    description: "Severe economic downturn"
+    shocks:
+      interest_rate: 300    # +300 bps parallel shift
+      fx_usd_brl: 0.25     # 25% USD/BRL depreciation
+      credit_pd_multiplier: 1.4  # 40% increase in PDs
+      credit_lgd_addon: 0.1      # +10pp LGD increase
+      equity_shock: -0.3         # -30% equity prices
+      real_estate_shock: -0.2    # -20% property values
+      
+  # Severely adverse scenario  
+  severely_adverse:
+    name: "Severely Adverse Scenario"
+    description: "Extreme tail risk scenario"
+    shocks:
+      interest_rate: 500    # +500 bps parallel shift
+      fx_usd_brl: 0.4      # 40% USD/BRL depreciation
+      credit_pd_multiplier: 2.0  # 100% increase in PDs
+      credit_lgd_addon: 0.15     # +15pp LGD increase
+      equity_shock: -0.5         # -50% equity prices
+      real_estate_shock: -0.35   # -35% property values
+
+# Correlation parameters for market risk
+correlations:
+  # Interest rate correlations across tenors
+  ir_correlations:
+    same_bucket: 0.99
+    adjacent_buckets: 0.79
+    non_adjacent: 0.59
+  
+  # FX correlations
+  fx_correlations:
+    major_pairs: 0.6
+    em_pairs: 0.3
+  
+  # Equity correlations
+  equity_correlations:
+    same_bucket: 0.15
+    different_buckets: 0.075
+
+# Data validation rules
+validation:
+  # Maximum exposure limits (for data quality checks)
+  max_exposure_single: 1000000000  # €1bn
+  max_total_exposure: 100000000000 # €100bn
+  
+  # PD/LGD bounds
+  min_pd: 0.0001  # 1bp
+  max_pd: 0.99    # 99%
+  min_lgd: 0.01   # 1%
+  max_lgd: 1.0    # 100%
+  
+  # Maturity bounds
+  min_maturity: 0.003  # ~1 day
+  max_maturity: 50     # 50 years
