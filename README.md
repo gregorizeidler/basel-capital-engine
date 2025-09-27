@@ -5,7 +5,7 @@
 ![Basel III](https://img.shields.io/badge/Basel_III-Compliant-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.8+-green.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen.svg)
+![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen.svg) 
 
 **A comprehensive, open-source regulatory capital calculation engine implementing the Basel III framework for banking institutions**
 
